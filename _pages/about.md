@@ -1,35 +1,29 @@
 ---
 layout: page
-title: Mediumish Template for Jekyll
+title: About
 permalink: /about
 comments: true
 ---
 
-<div class="row justify-content-between">
-<div class="col-md-8 pr-5">
+## 안녕하세요!!
 
-<p>This website is built with Jekyll and Mediumish template for Jekyll. It's for demonstration purposes, no real content can be found. Mediumish template for Jekyll is compatible with Github pages, in fact even this demo is created with Github Pages and hosted with Github.</p>
+이 블로그는 제가 학습한 내용을 정리하는 공간입니다.  (아마 다른 것도 올릴 것 같긴 합니다..)
 
-<p class="mb-5"><img class="shadow-lg" src="{{site.baseurl}}/assets/images/mediumish-jekyll-template.png" alt="jekyll template mediumish" /></p>
-<h4>Documentation</h4>
+재미있는 주제가 생기면 하나씩 올려보려고 합니다 ㅎㅎ
 
-<p>Please, read the docs <a href="https://bootstrapstarter.com/bootstrap-templates/template-mediumish-bootstrap-jekyll/">here</a>.</p>
+잘 부탁 드립니다!
 
-<h4>Questions or bug reports?</h4>
+<hr>
 
-<p>Head over to our <a href="https://github.com/wowthemesnet/mediumish-theme-jekyll">Github repository</a>!</p>
+## 소개
+- **이름:** 박철영 (jyukki)
+- **경력:** 4년 차 백엔드 개발자 (프론트도 가아끔 하긴 합니다..)
 
-</div>
+## 연락처 & SNS
+- GitHub: [github.com/jyukki97](https://github.com/jyukki97)
+- Email: jyukki97@gmail.com
 
-<div class="col-md-4">
-
-<div class="sticky-top sticky-top-80">
-<h5>Buy me a coffee</h5>
-
-<p>Thank you for your support! Your donation helps me to maintain and improve <a target="_blank" href="https://github.com/wowthemesnet/mediumish-theme-jekyll">Mediumish <i class="fab fa-github"></i></a>.</p>
-
-<a target="_blank" href="https://www.wowthemes.net/donate/" class="btn btn-danger">Buy me a coffee</a> <a target="_blank" href="https://bootstrapstarter.com/bootstrap-templates/template-mediumish-bootstrap-jekyll/" class="btn btn-warning">Documentation</a>
-
-</div>
-</div>
-</div>
+## 이전 블로그
+- https://jyukki97.github.io
+- https://velog.io/@jyukki97/posts
+- https://jyukki.tistory.com/

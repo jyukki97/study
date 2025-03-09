@@ -1,12 +1,11 @@
 # Site
-name: "jyukki's Study"
-title: "jyukki's Study"
-description: "jyukki's study blog"
+name: "한 단계 더 위로"
+title: "한 단계 더 위로"
+description: "jyukki's blog"
 logo: 'assets/images/logo.png'
 favicon: 'assets/images/logo.png'
 baseurl: /study
-google_analytics: 'UA-46278016-1'
-disqus: 'demowebsite'
+disqus: 'jyukki97'
 # mailchimp-list: 'https://wowthemes.us11.list-manage.com/subscribe/post?u=8aeb20a530e124561927d3bd8&amp;id=8c3d2d214b'
 include: ["_pages"]
 permalink: /:title/
@@ -17,9 +16,10 @@ authors:
     name: jyukki
     display_name: jyukki
     # gravatar: e56154546cf4be74e393c62d1ae9f9d4
+    avatar: 'assets/images/1623854336046.jpg'
     email: jyukki97@gmail.com
     web: https://jyukki97.github.io/
-    description: "안녕하세요."
+    description: "오늘보다 한단계 더 위로"
 
 # Plugins
 plugins:
