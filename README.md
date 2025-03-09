@@ -1,1 +1,3 @@
-# yukki97.github.io
+# Study
+
+* 공부한 내용 정리용 블로그
