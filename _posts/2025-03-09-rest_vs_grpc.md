@@ -2,7 +2,10 @@
 layout: post
 title:  "REST vs gRPC 성능 비교: 정말 gRPC가 좋을까?"
 author: jyukki
-categories: [ REST, gRPC, TEST, Kotlin ]
+image: assets/images/grpc-vs-rest.png
+categories: [ TEST ]
+tags: [ REST, gRPC, Kotlin ]
+featured: true
 ---
 
 

@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<link rel="icon" href="/study/assets/images/logo.png">
+
+<title>REST vs GraphQL 성능 비교 | 한 단계 더 위로</title>
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>REST vs GraphQL 성능 비교 | 한 단계 더 위로</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="REST vs GraphQL 성능 비교" />
+<meta name="author" content="jyukki" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="저번 포스트에서 gRPC 와 REST, GraphQL 에 대해서 알아보았다. GraphQL 이 아직까지는 REST 를 버리고 갈만큼 매력적으로 다가오지않았는데, 혹시 다른 장점이 있을지 모르니 테스트 해보자." />
+<meta property="og:description" content="저번 포스트에서 gRPC 와 REST, GraphQL 에 대해서 알아보았다. GraphQL 이 아직까지는 REST 를 버리고 갈만큼 매력적으로 다가오지않았는데, 혹시 다른 장점이 있을지 모르니 테스트 해보자." />
+<link rel="canonical" href="http://localhost:4000/study/2-rest-vs-graphql/" />
+<meta property="og:url" content="http://localhost:4000/study/2-rest-vs-graphql/" />
+<meta property="og:site_name" content="한 단계 더 위로" />
+<meta property="og:image" content="http://localhost:4000/study/assets/images/graphql-vs-rest.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2025-03-15T00:00:00+09:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content="http://localhost:4000/study/assets/images/graphql-vs-rest.png" />
+<meta property="twitter:title" content="REST vs GraphQL 성능 비교" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"jyukki"},"dateModified":"2025-03-15T00:00:00+09:00","datePublished":"2025-03-15T00:00:00+09:00","description":"저번 포스트에서 gRPC 와 REST, GraphQL 에 대해서 알아보았다. GraphQL 이 아직까지는 REST 를 버리고 갈만큼 매력적으로 다가오지않았는데, 혹시 다른 장점이 있을지 모르니 테스트 해보자.","headline":"REST vs GraphQL 성능 비교","image":"http://localhost:4000/study/assets/images/graphql-vs-rest.png","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/study/2-rest-vs-graphql/"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"http://localhost:4000/study/assets/images/logo.png"},"name":"jyukki"},"url":"http://localhost:4000/study/2-rest-vs-graphql/"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    
+<link href="/study/assets/css/screen.css" rel="stylesheet">
+
+<link href="/study/assets/css/main.css" rel="stylesheet">
+
+<script src="/study/assets/js/jquery.min.js"></script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-4BH0XLL42M"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-4BH0XLL42M');
+</script>
+
+</head>
+
+
+<body class="layout-post">
+	<!-- defer loading of font and font awesome -->
+	<noscript id="deferred-styles">
+		<link href="https://fonts.googleapis.com/css?family=Righteous%7CMerriweather:300,300i,400,400i,700,700i" rel="stylesheet">
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+	</noscript>
+
+
+<!-- Begin Menu Navigation
+================================================== -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top mediumnavigation nav-down">
+
+    <div class="container pr-0">
+
+    <!-- Begin Logo -->
+    <a class="navbar-brand" href="/study/">
+    <img src="/study/assets/images/logo.png" alt="한 단계 더 위로">
+    </a>
+    <!-- End Logo -->
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarMediumish" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMediumish">
+
+        <!-- Begin Menu -->
+
+            <ul class="navbar-nav ml-auto">
+
+                
+                <li class="nav-item">
+                
+                <a class="nav-link" href="/study/index.html">Blog</a>
+                </li>
+
+                <li class="nav-item">
+                <a class="nav-link" href="/study/about">About</a>
+                </li>
+
+                <script src="/study/assets/js/lunr.js"></script>
+
+
+<style>
+    .lunrsearchresult .title {color: #d9230f;}
+    .lunrsearchresult .url {color: silver;}
+    .lunrsearchresult a {display: block; color: #777;}
+    .lunrsearchresult a:hover, .lunrsearchresult a:focus {text-decoration: none;}
+    .lunrsearchresult a:hover .title {text-decoration: underline;}
+</style>
+
+
+<form class="bd-search" onSubmit="return lunr_search(document.getElementById('lunrsearch').value);">
+    <input type="text" class="form-control text-small launch-modal-search" id="lunrsearch" name="q" maxlength="255" value="" placeholder="Type and enter..."/>
+</form>
+
+<div id="lunrsearchresults">
+    <ul></ul>
+</div>
+
+<script src="/study/assets/js/lunrsearchengine.js"></script>
+
+            </ul>
+
+        <!-- End Menu -->
+
+    </div>
+
+    </div>
+</nav>
+<!-- End Navigation
+================================================== -->
+
+<div class="site-content">
+
+<div class="container">
+
+<!-- Site Title
+================================================== -->
+<div class="mainheading">
+    <h1 class="sitetitle">한 단계 더 위로</h1>
+    <p class="lead">
+        jyukki's blog
+    </p>
+</div>
+
+<!-- Content
+================================================== -->
+<div class="main-content">
+    <!-- Begin Article
+================================================== -->
+<div class="container">
+    <div class="row">
+
+        <!-- Post Share -->
+        <div class="col-md-2 pl-0">
+            <div class="share sticky-top sticky-top-offset">
+    
+    <ul>
+        <li>
+        <a class="small smoothscroll" href="#disqus_thread"></a>
+        </li>
+    </ul>
+    
+</div>
+
+        </div>
+
+        <!-- Post -->
+        
+
+        <div class="col-md-9 flex-first flex-md-unordered">
+            <div class="mainheading">
+
+                <!-- Author Box -->
+                
+                <div class="row post-top-meta">
+                    <div class="col-xs-12 col-md-3 col-lg-2 text-center text-md-left mb-4 mb-md-0">
+                        
+                        <img class="author-thumb" src="/study/assets/images/1623854336046.jpg" alt="jyukki">
+                        
+                    </div>
+                    <div class="col-xs-12 col-md-9 col-lg-10 text-center text-md-left align-content-center">
+                        <a target="_blank" class="link-dark" href="https://jyukki97.github.io/">jyukki</a>
+                        <div class="author-description">오늘보다 한단계 더 위로</div>
+                        <!-- Post Date -->
+                        <p>
+                            <small>
+                            <span class="post-date"><time class="post-date" datetime="2025-03-15">15 Mar 2025</time></span>           
+                                
+                            </small>
+                        </p>
+                    </div>
+                </div>
+                
+
+                <!-- Post Title -->
+                <h1 class="posttitle">REST vs GraphQL 성능 비교</h1>
+
+            </div>
+
+            <!-- Adsense if enabled from _config.yml (change your pub id and slot) -->
+            
+            <!-- End Adsense -->
+
+            <!-- Post Featured Image -->
+            
+
+            
+            <img class="featured-image img-fluid" src="/study/assets/images/graphql-vs-rest.png" alt="REST vs GraphQL 성능 비교">
+            
+
+            
+            <!-- End Featured Image -->
+
+            <!-- Post Content -->
+            <div class="article-post">
+                <!-- Toc if any -->
+                
+                <!-- End Toc -->
+                <blockquote>
+  <p>저번 포스트에서 <strong>gRPC</strong> 와 <strong>REST</strong>, <strong>GraphQL</strong> 에 대해서 알아보았다. <br />
+<strong>GraphQL</strong> 이 아직까지는 <strong>REST</strong> 를 버리고 갈만큼 매력적으로 다가오지않았는데, 혹시 다른 장점이 있을지 모르니 테스트 해보자.</p>
+</blockquote>
+
+<h3 id="list-조회">list 조회</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre>wrk <span class="nt">-t8</span> <span class="nt">-c100</span> <span class="nt">-d30s</span> http://localhost:8080/posts
+
+// <span class="nt">-------</span>
+8 threads and 100 connections
+Thread Stats   Avg      Stdev     Max   +/- Stdev
+  Latency   143.24ms   49.04ms 589.18ms   85.56%
+  Req/Sec    84.58     18.74   128.00     74.96%
+20234 requests <span class="k">in </span>30.10s, 2.53GB <span class="nb">read
+</span>Requests/sec:    672.18
+Transfer/sec:     85.93MB
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre>wrk <span class="nt">-t8</span> <span class="nt">-c100</span> <span class="nt">-d30s</span> <span class="nt">-s</span> ./test-grapql-post-list.lua http://localhost:8080/graphql
+
+// <span class="nt">-------</span>
+8 threads and 100 connections
+Thread Stats   Avg      Stdev     Max   +/- Stdev
+  Latency   225.51ms   73.18ms 850.47ms   85.31%
+  Req/Sec    53.34     18.47   131.00     71.55%
+12770 requests <span class="k">in </span>30.06s, 0.90GB <span class="nb">read
+</span>Requests/sec:    424.83
+Transfer/sec:     30.70MB
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>비교 항목</th>
+      <th>REST API</th>
+      <th>GraphQL</th>
+      <th>비고</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>평균 응답 시간 (Latency)</td>
+      <td>143.24ms</td>
+      <td>225.51ms</td>
+      <td>1.57배 느림</td>
+    </tr>
+    <tr>
+      <td>초당 요청 처리량 (Requests/sec)</td>
+      <td>672.18 req/sec</td>
+      <td>424.83 req/sec</td>
+      <td>1.58배 낮음</td>
+    </tr>
+    <tr>
+      <td>최대 응답 시간 (Max Latency)</td>
+      <td>589.18ms</td>
+      <td>850.47ms</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>총 요청 수</td>
+      <td>2,0234 req</td>
+      <td>1,2770 req</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>데이터 전송량 (Transfer/sec)</td>
+      <td>85.93MB/sec</td>
+      <td>30.70MB/sec</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<p><br /></p>
+
+<p><img src="/study/assets/images/rest-grpc-post-cpu-usage.png" /></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Metric</th>
+      <th>REST API</th>
+      <th>GraphQL</th>
+      <th>비고</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Average CPU Usage (%)</td>
+      <td>281.98%</td>
+      <td>549.1%</td>
+      <td>1.95배 높음</td>
+    </tr>
+    <tr>
+      <td>Max CPU Usage (%)</td>
+      <td>328.9%</td>
+      <td>632.8%</td>
+      <td>1.92배 높음</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><br /></p>
+
+<h3 id="단건-조회-댓글-포함">단건 조회 (댓글 포함)</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre>wrk <span class="nt">-t8</span> <span class="nt">-c100</span> <span class="nt">-d30s</span> http://localhost:8080/posts/1
+
+// <span class="nt">-------</span>
+8 threads and 100 connections
+Thread Stats   Avg      Stdev     Max   +/- Stdev
+  Latency    22.63ms    8.89ms 105.55ms   78.00%
+  Req/Sec   536.37    113.74     1.32k    76.25%
+128274 requests <span class="k">in </span>30.08s, 44.28MB <span class="nb">read
+</span>Requests/sec:   4264.89
+Transfer/sec:      1.47MB
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre>wrk <span class="nt">-t8</span> <span class="nt">-c100</span> <span class="nt">-d30s</span> <span class="nt">-s</span> ./test-grapql-post-comment.lua http://localhost:8080/graphql
+
+// <span class="nt">-------</span>
+8 threads and 100 connections
+Thread Stats   Avg      Stdev     Max   +/- Stdev
+  Latency    45.72ms   14.19ms 201.01ms   86.96%
+  Req/Sec   263.78     39.41   450.00     67.62%
+63127 requests <span class="k">in </span>30.05s, 32.15MB <span class="nb">read
+</span>Requests/sec:   2100.63
+Transfer/sec:      1.07MB
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>비교 항목</th>
+      <th>REST API</th>
+      <th>GraphQL</th>
+      <th>비고</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>평균 응답 시간 (Latency)</td>
+      <td>22.63ms</td>
+      <td>45.72ms</td>
+      <td>2배 느림</td>
+    </tr>
+    <tr>
+      <td>초당 요청 처리량 (Requests/sec)</td>
+      <td>4264.89 req/sec</td>
+      <td>2100.63 req/sec</td>
+      <td>2배 낮음</td>
+    </tr>
+    <tr>
+      <td>최대 응답 시간 (Max Latency)</td>
+      <td>105.55ms</td>
+      <td>201.01ms</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>총 요청 수</td>
+      <td>128,274 req</td>
+      <td>63,127 req</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>데이터 전송량 (Transfer/sec)</td>
+      <td>1.47MB/sec</td>
+      <td>1.07MB/sec</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<p><br /></p>
+
+<p><img src="/study/assets/images/rest-grpc-comment-cpu-usage.png" /></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Metric</th>
+      <th>REST API</th>
+      <th>GraphQL</th>
+      <th>비고</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Average CPU Usage (%)</td>
+      <td>128.75%</td>
+      <td>153.2%</td>
+      <td>1.19배 높음</td>
+    </tr>
+    <tr>
+      <td>Max CPU Usage (%)</td>
+      <td>148.0%</td>
+      <td>172.0%</td>
+      <td>1.16배 높음</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="결론">결론</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>뭐랄까...
+GraphQL 은 느리고, CPU 도 많이 먹는 것 같다...
+REST 와 비교했을 때, 구현이 더 귀찮을 것을 생각하면, 
+일반적인 상황에서는 딱히 쓸 이유는 없어보인다..
+GraphQL 의 성능을 생각해봤을 때에는 쓸 이유가 명확할 때에만 쓰게될 것 같다.
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+            </div>
+
+            <!-- Rating -->
+            
+
+            <!-- Post Categories -->
+            <div class="after-post-cats">
+                <ul class="tags mb-4">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/study/categories#API">API</a>
+                    </li>
+                    
+                    <li>
+                        <a class="smoothscroll" href="/study/categories#TEST">TEST</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Categories -->
+
+            <!-- Post Tags -->
+            <div class="after-post-tags">
+                <ul class="tags">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/study/tags#GraphQL">#GraphQL</a>
+                    </li>
+                    
+                    <li>
+                        <a class="smoothscroll" href="/study/tags#Kotlin">#Kotlin</a>
+                    </li>
+                    
+                    <li>
+                        <a class="smoothscroll" href="/study/tags#REST">#REST</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Tags -->
+
+            <!-- Prev/Next -->
+            <div class="row PageNavigation d-flex justify-content-between font-weight-bold">
+            
+            <a class="prev d-block col-md-6" href="/study//1-grpc-vs-rest-vs-graphql/"> &laquo; gRPC vs REST vs GraphQL: 무엇을 선택해야 할까?</a>
+            
+            
+            <a class="next d-block col-md-6 text-lg-right" href="/study//3-mono-throw/">Mono 내부에서 throw 를 던질 경우 onErrorResume이 동작하지 않는다? &raquo; </a>
+            
+            <div class="clearfix"></div>
+            </div>
+            <!-- End Categories -->
+
+        </div>
+        <!-- End Post -->
+
+    </div>
+</div>
+<!-- End Article
+================================================== -->
+
+<!-- Begin Comments
+================================================== -->
+
+    <div class="container">
+        <div id="comments" class="row justify-content-center mb-5">
+            <div class="col-md-8">
+                <section class="disqus">
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        var disqus_shortname = 'jyukki97'; 
+        var disqus_developer = 0;
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+            </div>
+        </div>
+    </div>
+
+<!--End Comments
+================================================== -->
+
+<!-- Review with LD-JSON, adapt it for your needs if you like, but make sure you test the generated HTML source code first: 
+https://search.google.com/structured-data/testing-tool/u/0/
+================================================== -->
+
+</div>
+
+
+    
+</div>
+
+<!-- Categories Jumbotron
+================================================== -->
+<div class="jumbotron fortags">
+	<div class="d-md-flex h-100">
+		<div class="col-md-4 transpdark align-self-center text-center h-100">
+            <div class="d-md-flex align-items-center justify-content-center h-100">
+                <h2 class="d-md-block align-self-center py-1 font-weight-light"></h2>
+            </div>
+		</div>
+		<div class="col-md-8 p-5 align-self-center text-center">
+            
+            
+                
+                    <a class="mt-1 mb-1" href="/study/categories#first">first (1)</a>
+                
+                    <a class="mt-1 mb-1" href="/study/categories#TEST">TEST (5)</a>
+                
+                    <a class="mt-1 mb-1" href="/study/categories#API">API (2)</a>
+                
+                    <a class="mt-1 mb-1" href="/study/categories#Webflux">Webflux (1)</a>
+                
+                    <a class="mt-1 mb-1" href="/study/categories#DB">DB (1)</a>
+                
+            
+            
+		</div>
+	</div>
+</div>
+
+<!-- Begin Footer
+================================================== -->
+<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-sm-6 text-center text-lg-left">
+                Copyright © 2025 한 단계 더 위로 
+            </div>
+            <div class="col-md-6 col-sm-6 text-center text-lg-right"> 
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- End Footer
+================================================== -->
+
+</div> <!-- /.site-content -->
+
+<!-- Scripts
+================================================== -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+
+<script src="/study/assets/js/mediumish.js"></script>
+
+
+
+<script src="/study/assets/js/ie10-viewport-bug-workaround.js"></script> 
+
+
+<script id="dsq-count-scr" src="//jyukki97.disqus.com/count.js"></script>
+
+
+</body>
+</html>

@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<link rel="icon" href="/study/assets/images/logo.png">
+
+<title>MySql Index 테스트 이모저모 | 한 단계 더 위로</title>
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>MySql Index 테스트 이모저모 | 한 단계 더 위로</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="MySql Index 테스트 이모저모" />
+<meta name="author" content="jyukki" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="귀찮아서 매번 B-Tree 만 쓰던 DB 인덱스가 갑자기 궁금해지기 시작했다. 다른 Index 도 쓸만할지 한번 확인해보자" />
+<meta property="og:description" content="귀찮아서 매번 B-Tree 만 쓰던 DB 인덱스가 갑자기 궁금해지기 시작했다. 다른 Index 도 쓸만할지 한번 확인해보자" />
+<link rel="canonical" href="http://localhost:4000/study/4-mysql-index/" />
+<meta property="og:url" content="http://localhost:4000/study/4-mysql-index/" />
+<meta property="og:site_name" content="한 단계 더 위로" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2025-03-15T00:00:00+09:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="MySql Index 테스트 이모저모" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"jyukki"},"dateModified":"2025-03-15T00:00:00+09:00","datePublished":"2025-03-15T00:00:00+09:00","description":"귀찮아서 매번 B-Tree 만 쓰던 DB 인덱스가 갑자기 궁금해지기 시작했다. 다른 Index 도 쓸만할지 한번 확인해보자","headline":"MySql Index 테스트 이모저모","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/study/4-mysql-index/"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"http://localhost:4000/study/assets/images/logo.png"},"name":"jyukki"},"url":"http://localhost:4000/study/4-mysql-index/"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    
+<link href="/study/assets/css/screen.css" rel="stylesheet">
+
+<link href="/study/assets/css/main.css" rel="stylesheet">
+
+<script src="/study/assets/js/jquery.min.js"></script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-4BH0XLL42M"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-4BH0XLL42M');
+</script>
+
+</head>
+
+
+<body class="layout-post">
+	<!-- defer loading of font and font awesome -->
+	<noscript id="deferred-styles">
+		<link href="https://fonts.googleapis.com/css?family=Righteous%7CMerriweather:300,300i,400,400i,700,700i" rel="stylesheet">
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+	</noscript>
+
+
+<!-- Begin Menu Navigation
+================================================== -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top mediumnavigation nav-down">
+
+    <div class="container pr-0">
+
+    <!-- Begin Logo -->
+    <a class="navbar-brand" href="/study/">
+    <img src="/study/assets/images/logo.png" alt="한 단계 더 위로">
+    </a>
+    <!-- End Logo -->
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarMediumish" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMediumish">
+
+        <!-- Begin Menu -->
+
+            <ul class="navbar-nav ml-auto">
+
+                
+                <li class="nav-item">
+                
+                <a class="nav-link" href="/study/index.html">Blog</a>
+                </li>
+
+                <li class="nav-item">
+                <a class="nav-link" href="/study/about">About</a>
+                </li>
+
+                <script src="/study/assets/js/lunr.js"></script>
+
+
+<style>
+    .lunrsearchresult .title {color: #d9230f;}
+    .lunrsearchresult .url {color: silver;}
+    .lunrsearchresult a {display: block; color: #777;}
+    .lunrsearchresult a:hover, .lunrsearchresult a:focus {text-decoration: none;}
+    .lunrsearchresult a:hover .title {text-decoration: underline;}
+</style>
+
+
+<form class="bd-search" onSubmit="return lunr_search(document.getElementById('lunrsearch').value);">
+    <input type="text" class="form-control text-small launch-modal-search" id="lunrsearch" name="q" maxlength="255" value="" placeholder="Type and enter..."/>
+</form>
+
+<div id="lunrsearchresults">
+    <ul></ul>
+</div>
+
+<script src="/study/assets/js/lunrsearchengine.js"></script>
+
+            </ul>
+
+        <!-- End Menu -->
+
+    </div>
+
+    </div>
+</nav>
+<!-- End Navigation
+================================================== -->
+
+<div class="site-content">
+
+<div class="container">
+
+<!-- Site Title
+================================================== -->
+<div class="mainheading">
+    <h1 class="sitetitle">한 단계 더 위로</h1>
+    <p class="lead">
+        jyukki's blog
+    </p>
+</div>
+
+<!-- Content
+================================================== -->
+<div class="main-content">
+    <!-- Begin Article
+================================================== -->
+<div class="container">
+    <div class="row">
+
+        <!-- Post Share -->
+        <div class="col-md-2 pl-0">
+            <div class="share sticky-top sticky-top-offset">
+    
+    <ul>
+        <li>
+        <a class="small smoothscroll" href="#disqus_thread"></a>
+        </li>
+    </ul>
+    
+</div>
+
+        </div>
+
+        <!-- Post -->
+        
+
+        <div class="col-md-9 flex-first flex-md-unordered">
+            <div class="mainheading">
+
+                <!-- Author Box -->
+                
+                <div class="row post-top-meta">
+                    <div class="col-xs-12 col-md-3 col-lg-2 text-center text-md-left mb-4 mb-md-0">
+                        
+                        <img class="author-thumb" src="/study/assets/images/1623854336046.jpg" alt="jyukki">
+                        
+                    </div>
+                    <div class="col-xs-12 col-md-9 col-lg-10 text-center text-md-left align-content-center">
+                        <a target="_blank" class="link-dark" href="https://jyukki97.github.io/">jyukki</a>
+                        <div class="author-description">오늘보다 한단계 더 위로</div>
+                        <!-- Post Date -->
+                        <p>
+                            <small>
+                            <span class="post-date"><time class="post-date" datetime="2025-03-15">15 Mar 2025</time></span>           
+                                
+                            </small>
+                        </p>
+                    </div>
+                </div>
+                
+
+                <!-- Post Title -->
+                <h1 class="posttitle">MySql Index 테스트 이모저모</h1>
+
+            </div>
+
+            <!-- Adsense if enabled from _config.yml (change your pub id and slot) -->
+            
+            <!-- End Adsense -->
+
+            <!-- Post Featured Image -->
+            
+            <!-- End Featured Image -->
+
+            <!-- Post Content -->
+            <div class="article-post">
+                <!-- Toc if any -->
+                
+                <!-- End Toc -->
+                <blockquote>
+  <p>귀찮아서 매번 B-Tree 만 쓰던 DB 인덱스가 갑자기 궁금해지기 시작했다. <br />
+다른 Index 도 쓸만할지 한번 확인해보자</p>
+</blockquote>
+
+<h4 id="테이스-테이블">테이스 테이블</h4>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">test_index</span> <span class="p">(</span>
+    <span class="n">id</span> <span class="nb">INT</span> <span class="n">AUTO_INCREMENT</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+    <span class="n">created_at</span> <span class="nb">DATETIME</span> <span class="k">DEFAULT</span> <span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span> <span class="c1">-- B-Tree 테스트</span>
+    <span class="n">category</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">50</span><span class="p">),</span> <span class="c1">-- Hash Index 테스트</span>
+    <span class="n">description</span> <span class="nb">TEXT</span><span class="p">,</span> <span class="c1">-- Fulltext Index 테스트</span>
+
+    <span class="k">INDEX</span> <span class="n">idx_btree_created_at</span> <span class="p">(</span><span class="n">created_at</span><span class="p">),</span>
+    <span class="k">INDEX</span> <span class="n">idx_hash_category</span> <span class="k">USING</span> <span class="n">HASH</span> <span class="p">(</span><span class="n">category</span><span class="p">),</span>
+    <span class="n">FULLTEXT</span> <span class="k">INDEX</span> <span class="n">idx_fulltext_description</span> <span class="p">(</span><span class="n">description</span><span class="p">)</span>
+<span class="p">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h4 id="테스트-데이터">테스트 데이터</h4>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+</pre></td><td class="rouge-code"><pre><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">test_index</span> <span class="p">(</span><span class="n">created_at</span><span class="p">,</span> <span class="n">category</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span>
+<span class="k">SELECT</span>
+    <span class="n">NOW</span><span class="p">()</span> <span class="o">-</span> <span class="n">INTERVAL</span> <span class="n">FLOOR</span><span class="p">(</span><span class="n">RAND</span><span class="p">()</span> <span class="o">*</span> <span class="mi">365</span><span class="p">)</span> <span class="k">DAY</span><span class="p">,</span>
+    <span class="n">ELT</span><span class="p">(</span><span class="n">FLOOR</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">RAND</span><span class="p">()</span> <span class="o">*</span> <span class="mi">3</span><span class="p">)),</span> <span class="s1">'A'</span><span class="p">,</span> <span class="s1">'B'</span><span class="p">,</span> <span class="s1">'C'</span><span class="p">),</span>
+    <span class="n">CONCAT</span><span class="p">(</span>
+        <span class="s1">'This is a sample description '</span><span class="p">,</span>
+        <span class="n">FLOOR</span><span class="p">(</span><span class="n">RAND</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">),</span>
+        <span class="s1">' with random content'</span>
+    <span class="p">)</span>
+<span class="k">FROM</span> <span class="n">information_schema</span><span class="p">.</span><span class="n">tables</span> <span class="k">AS</span> <span class="n">a</span>
+<span class="k">CROSS</span> <span class="k">JOIN</span> <span class="n">information_schema</span><span class="p">.</span><span class="n">tables</span> <span class="k">AS</span> <span class="n">b</span>
+<span class="k">LIMIT</span> <span class="mi">100000</span><span class="p">;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="1-b-tree-테스트">1. B-Tree 테스트</h2>
+
+<h5 id="범위-조회-between">범위 조회 (BETWEEN)</h5>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">test_index</span>
+<span class="k">WHERE</span> <span class="n">created_at</span> <span class="k">BETWEEN</span> <span class="s1">'2024-10-01'</span> <span class="k">AND</span> <span class="s1">'2024-11-01'</span><span class="p">;</span>
+
+<span class="o">-&gt;</span> <span class="k">Index</span> <span class="k">range</span> <span class="n">scan</span> <span class="k">on</span> <span class="n">test_index</span> <span class="k">using</span> <span class="n">idx_btree_created_at</span> <span class="n">over</span> <span class="p">(</span><span class="s1">'2024-10-01 00:00:00'</span> <span class="o">&lt;=</span> <span class="n">created_at</span> <span class="o">&lt;=</span> <span class="s1">'2024-11-01 00:00:00'</span><span class="p">),</span> <span class="k">with</span> <span class="k">index</span> <span class="n">condition</span><span class="p">:</span> <span class="p">(</span><span class="n">test_index</span><span class="p">.</span><span class="n">created_at</span> <span class="k">between</span> <span class="s1">'2024-10-01'</span> <span class="k">and</span> <span class="s1">'2024-11-01'</span><span class="p">)</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">3824</span> <span class="k">rows</span><span class="o">=</span><span class="mi">8498</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">19</span><span class="p">..</span><span class="mi">26</span><span class="p">.</span><span class="mi">6</span> <span class="k">rows</span><span class="o">=</span><span class="mi">8498</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="rouge-code"><pre><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">test_index</span>
+<span class="k">IGNORE</span> <span class="k">INDEX</span><span class="p">(</span><span class="n">idx_btree_created_at</span><span class="p">)</span>      <span class="c1">-- B-Tree 인덱스 제거</span>
+<span class="k">WHERE</span> <span class="n">created_at</span> <span class="k">BETWEEN</span> <span class="s1">'2024-10-01'</span> <span class="k">AND</span> <span class="s1">'2024-11-01'</span><span class="p">;</span>
+
+<span class="o">-&gt;</span> <span class="n">Filter</span><span class="p">:</span> <span class="p">(</span><span class="n">test_index</span><span class="p">.</span><span class="n">created_at</span> <span class="k">between</span> <span class="s1">'2024-10-01'</span> <span class="k">and</span> <span class="s1">'2024-11-01'</span><span class="p">)</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">10102</span> <span class="k">rows</span><span class="o">=</span><span class="mi">11054</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">0711</span><span class="p">..</span><span class="mi">66</span><span class="p">.</span><span class="mi">4</span> <span class="k">rows</span><span class="o">=</span><span class="mi">8498</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="k">Table</span> <span class="n">scan</span> <span class="k">on</span> <span class="n">test_index</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">10102</span> <span class="k">rows</span><span class="o">=</span><span class="mi">99495</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">0548</span><span class="p">..</span><span class="mi">42</span><span class="p">.</span><span class="mi">1</span> <span class="k">rows</span><span class="o">=</span><span class="mi">100000</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h5 id="검색-조회-">검색 조회 (=)</h5>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span> 
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">test_index</span> 
+<span class="k">WHERE</span> <span class="n">created_at</span><span class="o">=</span><span class="s1">'2025-01-01 06:53:52'</span><span class="p">;</span>
+
+<span class="o">-&gt;</span> <span class="k">Index</span> <span class="n">lookup</span> <span class="k">on</span> <span class="n">test_index</span> <span class="k">using</span> <span class="n">idx_btree_created_at</span> <span class="p">(</span><span class="n">created_at</span><span class="o">=</span><span class="nb">TIMESTAMP</span><span class="s1">'2025-01-01 06:53:52'</span><span class="p">)</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">101</span> <span class="k">rows</span><span class="o">=</span><span class="mi">288</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">0881</span><span class="p">..</span><span class="mi">1</span><span class="p">.</span><span class="mi">49</span> <span class="k">rows</span><span class="o">=</span><span class="mi">288</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="rouge-code"><pre><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">test_index</span>
+<span class="k">IGNORE</span> <span class="k">INDEX</span><span class="p">(</span><span class="n">idx_btree_created_at</span><span class="p">)</span>      <span class="c1">-- B-Tree 인덱스 제거</span>
+<span class="k">WHERE</span> <span class="n">created_at</span><span class="o">=</span><span class="s1">'2025-01-01 06:53:52'</span><span class="p">;</span>
+
+<span class="o">|</span> <span class="o">-&gt;</span> <span class="n">Filter</span><span class="p">:</span> <span class="p">(</span><span class="n">test_index</span><span class="p">.</span><span class="n">created_at</span> <span class="o">=</span> <span class="nb">TIMESTAMP</span><span class="s1">'2025-01-01 06:53:52'</span><span class="p">)</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">10102</span> <span class="k">rows</span><span class="o">=</span><span class="mi">270</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">239</span><span class="p">..</span><span class="mi">45</span><span class="p">.</span><span class="mi">8</span> <span class="k">rows</span><span class="o">=</span><span class="mi">288</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="k">Table</span> <span class="n">scan</span> <span class="k">on</span> <span class="n">test_index</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">10102</span> <span class="k">rows</span><span class="o">=</span><span class="mi">99495</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">03</span><span class="p">..</span><span class="mi">39</span><span class="p">.</span><span class="mi">5</span> <span class="k">rows</span><span class="o">=</span><span class="mi">100000</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h5 id="결과">결과</h5>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>B-Tree</th>
+      <th>인덱스 X</th>
+      <th>차이점</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>범위 조회</strong></td>
+      <td>26.6ms</td>
+      <td>66.4ms</td>
+      <td>2.5배 차이</td>
+    </tr>
+    <tr>
+      <td><strong>검색 조회</strong></td>
+      <td>1.49ms</td>
+      <td>45.8ms</td>
+      <td>30배 차이</td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li>확실히 빠르긴하다..</li>
+  <li>범위 조회 효율이 더 잘나올 줄 알았는데, 검색 효율도 나쁘지않다</li>
+  <li>아닌가? 데이터가 늘면 늘수록 인덱스 없는 범위 조회 시간은 많이 걸릴라나?</li>
+</ul>
+
+<h2 id="2-hash-index-테스트">2. Hash Index 테스트</h2>
+
+<h5 id="범위-조회-between-1">범위 조회 (BETWEEN)</h5>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span>  
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">test_index</span> 
+<span class="k">WHERE</span> <span class="n">category</span> <span class="k">BETWEEN</span> <span class="s1">'A'</span> <span class="k">AND</span> <span class="s1">'B'</span><span class="p">;</span>
+
+<span class="o">-&gt;</span> <span class="n">Filter</span><span class="p">:</span> <span class="p">(</span><span class="n">test_index</span><span class="p">.</span><span class="n">category</span> <span class="k">between</span> <span class="s1">'A'</span> <span class="k">and</span> <span class="s1">'B'</span><span class="p">)</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">10102</span> <span class="k">rows</span><span class="o">=</span><span class="mi">49747</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">0455</span><span class="p">..</span><span class="mi">53</span><span class="p">.</span><span class="mi">5</span> <span class="k">rows</span><span class="o">=</span><span class="mi">66775</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="k">Table</span> <span class="n">scan</span> <span class="k">on</span> <span class="n">test_index</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">10102</span> <span class="k">rows</span><span class="o">=</span><span class="mi">99495</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">0401</span><span class="p">..</span><span class="mi">41</span> <span class="k">rows</span><span class="o">=</span><span class="mi">100000</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="rouge-code"><pre><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span>  
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">test_index</span> 
+<span class="k">IGNORE</span> <span class="k">INDEX</span><span class="p">(</span><span class="n">idx_hash_category</span><span class="p">)</span>     <span class="c1">-- Hash 인덱스 제거</span>
+<span class="k">WHERE</span> <span class="n">category</span> <span class="k">BETWEEN</span> <span class="s1">'A'</span> <span class="k">AND</span> <span class="s1">'B'</span><span class="p">;</span>
+
+<span class="o">|</span> <span class="o">-&gt;</span> <span class="n">Filter</span><span class="p">:</span> <span class="p">(</span><span class="n">test_index</span><span class="p">.</span><span class="n">category</span> <span class="k">between</span> <span class="s1">'A'</span> <span class="k">and</span> <span class="s1">'B'</span><span class="p">)</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">10102</span> <span class="k">rows</span><span class="o">=</span><span class="mi">11054</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">0491</span><span class="p">..</span><span class="mi">53</span><span class="p">.</span><span class="mi">9</span> <span class="k">rows</span><span class="o">=</span><span class="mi">66775</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="k">Table</span> <span class="n">scan</span> <span class="k">on</span> <span class="n">test_index</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">10102</span> <span class="k">rows</span><span class="o">=</span><span class="mi">99495</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">045</span><span class="p">..</span><span class="mi">41</span><span class="p">.</span><span class="mi">2</span> <span class="k">rows</span><span class="o">=</span><span class="mi">100000</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h5 id="검색-조회--1">검색 조회 (=)</h5>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span>  
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">test_index</span> 
+<span class="k">WHERE</span> <span class="n">category</span><span class="o">=</span><span class="s1">'B'</span><span class="p">;</span>
+
+<span class="o">-&gt;</span> <span class="k">Index</span> <span class="n">lookup</span> <span class="k">on</span> <span class="n">test_index</span> <span class="k">using</span> <span class="n">idx_hash_category</span> <span class="p">(</span><span class="n">category</span><span class="o">=</span><span class="s1">'B'</span><span class="p">)</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">5431</span> <span class="k">rows</span><span class="o">=</span><span class="mi">49747</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">0495</span><span class="p">..</span><span class="mi">47</span><span class="p">.</span><span class="mi">8</span> <span class="k">rows</span><span class="o">=</span><span class="mi">33477</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="rouge-code"><pre><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span>  
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">test_index</span>
+<span class="k">IGNORE</span> <span class="k">INDEX</span><span class="p">(</span><span class="n">idx_hash_category</span><span class="p">)</span>     <span class="c1">-- Hash 인덱스 제거 </span>
+<span class="k">WHERE</span> <span class="n">category</span><span class="o">=</span><span class="s1">'B'</span><span class="p">;</span>
+
+<span class="o">-&gt;</span> <span class="n">Filter</span><span class="p">:</span> <span class="p">(</span><span class="n">test_index</span><span class="p">.</span><span class="n">category</span> <span class="o">=</span> <span class="s1">'B'</span><span class="p">)</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">10102</span> <span class="k">rows</span><span class="o">=</span><span class="mi">49748</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">0344</span><span class="p">..</span><span class="mi">25</span><span class="p">.</span><span class="mi">7</span> <span class="k">rows</span><span class="o">=</span><span class="mi">33477</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="k">Table</span> <span class="n">scan</span> <span class="k">on</span> <span class="n">test_index</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">10102</span> <span class="k">rows</span><span class="o">=</span><span class="mi">99495</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">0323</span><span class="p">..</span><span class="mi">21</span><span class="p">.</span><span class="mi">2</span> <span class="k">rows</span><span class="o">=</span><span class="mi">100000</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h5 id="결과-1">결과</h5>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>Hash 인덱스</th>
+      <th>인덱스 X</th>
+      <th>차이점</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>범위 조회</strong></td>
+      <td>53.5ms</td>
+      <td>53.9ms</td>
+      <td>X</td>
+    </tr>
+    <tr>
+      <td><strong>검색 조회</strong></td>
+      <td>47.8ms</td>
+      <td>25.7ms</td>
+      <td>2배 차이</td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li>????? 검색 했는데 왜 Hash 인덱스가 더 느리지?..</li>
+  <li>범위 조회가 안되는 대신 검색 조회 효율을 높이기 위해 사용하는 것 아니었나??</li>
+  <li>흐음….. 데이터가 A, B, C 뿐이라 해시 효율이 안나오나? 데이터를 바꿔보자</li>
+</ul>
+
+<h3 id="2-1-hash-index-테스트-데이터-변경">2-1 Hash Index 테스트: 데이터 변경</h3>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">hash_test</span> <span class="p">(</span>
+    <span class="n">id</span> <span class="nb">INT</span> <span class="n">AUTO_INCREMENT</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+    <span class="n">uuid</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">36</span><span class="p">),</span>
+
+    <span class="k">INDEX</span> <span class="n">idx_hash_uuid</span> <span class="k">USING</span> <span class="n">HASH</span> <span class="p">(</span><span class="n">uuid</span><span class="p">)</span>
+<span class="p">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">hash_test</span> <span class="p">(</span><span class="n">uuid</span><span class="p">)</span>
+<span class="k">SELECT</span> 
+    <span class="n">UUID</span><span class="p">()</span>
+<span class="k">FROM</span> <span class="n">information_schema</span><span class="p">.</span><span class="n">tables</span> <span class="k">AS</span> <span class="n">a</span>
+<span class="k">CROSS</span> <span class="k">JOIN</span> <span class="n">information_schema</span><span class="p">.</span><span class="n">tables</span> <span class="k">AS</span> <span class="n">b</span>
+<span class="k">LIMIT</span> <span class="mi">100000</span><span class="p">;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h5 id="검색-조회--2">검색 조회 (=)</h5>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span>  
+<span class="k">SELECT</span> <span class="o">*</span> 
+<span class="k">FROM</span> <span class="n">hash_test</span>  
+<span class="k">WHERE</span> <span class="n">uuid</span><span class="o">=</span><span class="s1">'eaeaf92b-fb22-11ef-9745-0242ac110002'</span><span class="p">;</span>
+
+<span class="o">-&gt;</span> <span class="n">Covering</span> <span class="k">index</span> <span class="n">lookup</span> <span class="k">on</span> <span class="n">hash_test</span> <span class="k">using</span> <span class="n">idx_hash_uuid</span> <span class="p">(</span><span class="n">uuid</span><span class="o">=</span><span class="s1">'eaeaf92b-fb22-11ef-9745-0242ac110002'</span><span class="p">)</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">35</span> <span class="k">rows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">0349</span><span class="p">..</span><span class="mi">0</span><span class="p">.</span><span class="mi">0403</span> <span class="k">rows</span><span class="o">=</span><span class="mi">1</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span>  
+<span class="k">SELECT</span> <span class="o">*</span> 
+<span class="k">FROM</span> <span class="n">hash_test</span> 
+<span class="k">IGNORE</span> <span class="k">INDEX</span><span class="p">(</span><span class="n">idx_hash_uuid</span><span class="p">)</span>       <span class="c1">-- Hash 인덱스 제거 </span>
+<span class="k">WHERE</span> <span class="n">uuid</span><span class="o">=</span><span class="s1">'eaeaf92b-fb22-11ef-9745-0242ac110002'</span><span class="p">;</span>
+
+<span class="o">-&gt;</span> <span class="n">Filter</span><span class="p">:</span> <span class="p">(</span><span class="n">hash_test</span><span class="p">.</span><span class="n">uuid</span> <span class="o">=</span> <span class="s1">'eaeaf92b-fb22-11ef-9745-0242ac110002'</span><span class="p">)</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">10079</span> <span class="k">rows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">16</span><span class="p">..</span><span class="mi">34</span><span class="p">.</span><span class="mi">3</span> <span class="k">rows</span><span class="o">=</span><span class="mi">1</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="k">Table</span> <span class="n">scan</span> <span class="k">on</span> <span class="n">hash_test</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">10079</span> <span class="k">rows</span><span class="o">=</span><span class="mi">99750</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">303</span><span class="p">..</span><span class="mi">23</span><span class="p">.</span><span class="mi">4</span> <span class="k">rows</span><span class="o">=</span><span class="mi">100000</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h5 id="결과-2">결과</h5>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>Hash 인덱스</th>
+      <th>인덱스 X</th>
+      <th>차이점</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>검색 조회</strong></td>
+      <td>0.0403ms</td>
+      <td>34.3ms</td>
+      <td>800배 차이</td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li>이게 옳게된 결과지</li>
+  <li>흐음.. 데이터에 따라 인덱스를 고르는 것도 신중히 해야할 듯</li>
+  <li>같은 값이 많으면 Hash 인덱스의 성능이 떨어진다!</li>
+</ul>
+
+<h2 id="3-fulltext-index-테스트">3. Fulltext Index 테스트</h2>
+
+<h5 id="검색-조회-match">검색 조회 (MATCH)</h5>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">test_index</span>
+<span class="k">WHERE</span> <span class="k">MATCH</span><span class="p">(</span><span class="n">description</span><span class="p">)</span> <span class="n">AGAINST</span><span class="p">(</span><span class="s1">'random'</span><span class="p">);</span>
+
+<span class="o">-&gt;</span> <span class="n">Filter</span><span class="p">:</span> <span class="p">(</span><span class="k">match</span> <span class="n">test_index</span><span class="p">.</span><span class="nv">`description`</span> <span class="n">against</span> <span class="p">(</span><span class="s1">'random'</span><span class="p">))</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">35</span> <span class="k">rows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">15</span><span class="p">.</span><span class="mi">7</span><span class="p">..</span><span class="mi">89</span><span class="p">.</span><span class="mi">4</span> <span class="k">rows</span><span class="o">=</span><span class="mi">100000</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="k">Full</span><span class="o">-</span><span class="nb">text</span> <span class="k">index</span> <span class="k">search</span> <span class="k">on</span> <span class="n">test_index</span> <span class="k">using</span> <span class="n">idx_fulltext_description</span> <span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">'random'</span><span class="p">)</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">35</span> <span class="k">rows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">15</span><span class="p">.</span><span class="mi">7</span><span class="p">..</span><span class="mi">85</span><span class="p">.</span><span class="mi">6</span> <span class="k">rows</span><span class="o">=</span><span class="mi">100000</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="rouge-code"><pre><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span>  
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">test_index</span> 
+<span class="k">IGNORE</span> <span class="k">INDEX</span><span class="p">(</span><span class="n">idx_fulltext_description</span><span class="p">)</span>      <span class="c1">-- Fulltext 인덱스 제거</span>
+<span class="k">WHERE</span> <span class="k">MATCH</span><span class="p">(</span><span class="n">description</span><span class="p">)</span> <span class="n">AGAINST</span><span class="p">(</span><span class="s1">'random'</span><span class="p">);</span>
+
+<span class="o">-&gt;</span> <span class="n">Filter</span><span class="p">:</span> <span class="p">(</span><span class="k">match</span> <span class="n">test_index</span><span class="p">.</span><span class="nv">`description`</span> <span class="n">against</span> <span class="p">(</span><span class="s1">'random'</span><span class="p">))</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">10102</span> <span class="k">rows</span><span class="o">=</span><span class="mi">11054</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">571</span><span class="p">..</span><span class="mi">27</span><span class="p">.</span><span class="mi">3</span> <span class="k">rows</span><span class="o">=</span><span class="mi">100000</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="k">Table</span> <span class="n">scan</span> <span class="k">on</span> <span class="n">test_index</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">10102</span> <span class="k">rows</span><span class="o">=</span><span class="mi">99495</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">568</span><span class="p">..</span><span class="mi">19</span><span class="p">.</span><span class="mi">5</span> <span class="k">rows</span><span class="o">=</span><span class="mi">100000</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h5 id="검색-조회-like">검색 조회 (LIKE)</h5>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span>  
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">test_index</span>  
+<span class="k">WHERE</span> <span class="n">description</span> <span class="k">LIKE</span> <span class="s1">'%random%'</span><span class="p">;</span>
+
+<span class="o">-&gt;</span> <span class="n">Filter</span><span class="p">:</span> <span class="p">(</span><span class="n">test_index</span><span class="p">.</span><span class="nv">`description`</span> <span class="k">like</span> <span class="s1">'%random%'</span><span class="p">)</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">10102</span> <span class="k">rows</span><span class="o">=</span><span class="mi">11054</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">0473</span><span class="p">..</span><span class="mi">62</span><span class="p">.</span><span class="mi">9</span> <span class="k">rows</span><span class="o">=</span><span class="mi">100000</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="k">Table</span> <span class="n">scan</span> <span class="k">on</span> <span class="n">test_index</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">10102</span> <span class="k">rows</span><span class="o">=</span><span class="mi">99495</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">0422</span><span class="p">..</span><span class="mi">32</span><span class="p">.</span><span class="mi">8</span> <span class="k">rows</span><span class="o">=</span><span class="mi">100000</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="rouge-code"><pre><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span>  
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">test_index</span> 
+<span class="k">IGNORE</span> <span class="k">INDEX</span><span class="p">(</span><span class="n">idx_fulltext_description</span><span class="p">)</span>       <span class="c1">-- Fulltext 인덱스 제거</span>
+<span class="k">WHERE</span> <span class="n">description</span> <span class="k">LIKE</span> <span class="s1">'%random%'</span><span class="p">;</span>
+
+<span class="o">-&gt;</span> <span class="n">Filter</span><span class="p">:</span> <span class="p">(</span><span class="n">test_index</span><span class="p">.</span><span class="nv">`description`</span> <span class="k">like</span> <span class="s1">'%random%'</span><span class="p">)</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">10102</span> <span class="k">rows</span><span class="o">=</span><span class="mi">11054</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">052</span><span class="p">..</span><span class="mi">70</span><span class="p">.</span><span class="mi">5</span> <span class="k">rows</span><span class="o">=</span><span class="mi">100000</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="k">Table</span> <span class="n">scan</span> <span class="k">on</span> <span class="n">test_index</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">10102</span> <span class="k">rows</span><span class="o">=</span><span class="mi">99495</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">0452</span><span class="p">..</span><span class="mi">36</span><span class="p">.</span><span class="mi">9</span> <span class="k">rows</span><span class="o">=</span><span class="mi">100000</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h5 id="결과-3">결과</h5>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>Fulltext 인덱스</th>
+      <th>인덱스 X</th>
+      <th>차이점</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>검색 조회 (MATCH)</strong></td>
+      <td>89.4ms</td>
+      <td>27.3ms</td>
+      <td>3배 차이</td>
+    </tr>
+    <tr>
+      <td><strong>검색 조회 (LIKE)</strong></td>
+      <td>62.9ms</td>
+      <td>70.5ms</td>
+      <td>X</td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li>일단 LIKE 검색은 Fulltext 인덱스가 안먹는구나 확인</li>
+  <li>MATCH 검색은 왜 또 인덱스 뺀게 더 빠를까….</li>
+  <li>으음… 또 데이터 문제일까? random 이라는 문구가 모든 row 에 존재해서 사실상 테이블 스캔이랑 동일하게 전체 검사를 하게 된건가?..</li>
+</ul>
+
+<h3 id="3-1-fulltext-index-테스트-데이터-변경">3-1. Fulltext Index 테스트: 데이터 변경</h3>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">fulltext_test</span> <span class="p">(</span> 
+    <span class="n">id</span> <span class="nb">INT</span> <span class="n">AUTO_INCREMENT</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span> 
+    <span class="n">description</span> <span class="nb">TEXT</span><span class="p">,</span> 
+    
+    <span class="n">FULLTEXT</span> <span class="k">INDEX</span> <span class="n">idx_fulltext_description</span> <span class="p">(</span><span class="n">description</span><span class="p">)</span>
+<span class="p">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+</pre></td><td class="rouge-code"><pre><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">fulltext_test</span> <span class="p">(</span><span class="n">description</span><span class="p">)</span>
+<span class="k">SELECT</span> <span class="n">CONCAT</span><span class="p">(</span>
+        <span class="n">ELT</span><span class="p">(</span><span class="n">FLOOR</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">RAND</span><span class="p">()</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)),</span>
+            <span class="s1">'AI'</span><span class="p">,</span>
+            <span class="s1">'Blockchain'</span><span class="p">,</span>
+            <span class="s1">'Quantum Computing'</span><span class="p">,</span>
+            <span class="s1">'Cybersecurity'</span><span class="p">,</span>
+            <span class="s1">'Cloud Computing'</span>
+        <span class="p">),</span>
+        <span class="s1">' is transforming the world of '</span><span class="p">,</span>
+        <span class="n">ELT</span><span class="p">(</span><span class="n">FLOOR</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">RAND</span><span class="p">()</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)),</span>
+            <span class="s1">'finance'</span><span class="p">,</span>
+            <span class="s1">'healthcare'</span><span class="p">,</span>
+            <span class="s1">'automotive'</span><span class="p">,</span>
+            <span class="s1">'retail'</span><span class="p">,</span>
+            <span class="s1">'education'</span>
+        <span class="p">),</span>
+        <span class="s1">'. Experts predict it will impact over '</span><span class="p">,</span>
+        <span class="n">FLOOR</span><span class="p">(</span><span class="mi">10</span> <span class="o">+</span> <span class="p">(</span><span class="n">RAND</span><span class="p">()</span> <span class="o">*</span> <span class="mi">90</span><span class="p">)),</span>
+        <span class="s1">' million users by '</span><span class="p">,</span>
+        <span class="n">FLOOR</span><span class="p">(</span><span class="mi">2025</span> <span class="o">+</span> <span class="p">(</span><span class="n">RAND</span><span class="p">()</span> <span class="o">*</span> <span class="mi">10</span><span class="p">)),</span>
+        <span class="s1">'.'</span>
+        <span class="p">)</span>
+<span class="k">FROM</span> <span class="n">information_schema</span><span class="p">.</span><span class="n">tables</span> <span class="k">AS</span> <span class="n">a</span>
+<span class="k">CROSS</span> <span class="k">JOIN</span> <span class="n">information_schema</span><span class="p">.</span><span class="n">tables</span> <span class="k">AS</span> <span class="n">b</span>
+<span class="k">LIMIT</span> <span class="mi">1000000</span><span class="p">;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<h5 id="검색-조회-match-1">검색 조회 (MATCH)</h5>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">fulltext_test</span> 
+<span class="k">WHERE</span> <span class="k">MATCH</span><span class="p">(</span><span class="n">description</span><span class="p">)</span> <span class="n">AGAINST</span><span class="p">(</span><span class="s1">'Blockchain'</span><span class="p">);</span>
+
+ <span class="o">-&gt;</span> <span class="n">Filter</span><span class="p">:</span> <span class="p">(</span><span class="k">match</span> <span class="n">fulltext_test</span><span class="p">.</span><span class="nv">`description`</span> <span class="n">against</span> <span class="p">(</span><span class="s1">'Blockchain'</span><span class="p">))</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">35</span> <span class="k">rows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">5</span><span class="p">.</span><span class="mi">64</span><span class="p">..</span><span class="mi">35</span><span class="p">.</span><span class="mi">9</span> <span class="k">rows</span><span class="o">=</span><span class="mi">22668</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="k">Full</span><span class="o">-</span><span class="nb">text</span> <span class="k">index</span> <span class="k">search</span> <span class="k">on</span> <span class="n">fulltext_test</span> <span class="k">using</span> <span class="n">idx_fulltext_description</span> <span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">'Blockchain'</span><span class="p">)</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">35</span> <span class="k">rows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">5</span><span class="p">.</span><span class="mi">63</span><span class="p">..</span><span class="mi">34</span><span class="p">.</span><span class="mi">3</span> <span class="k">rows</span><span class="o">=</span><span class="mi">22668</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span>   
+<span class="k">SELECT</span> <span class="o">*</span> 
+<span class="k">FROM</span> <span class="n">fulltext_test</span> 
+<span class="k">IGNORE</span> <span class="k">INDEX</span><span class="p">(</span><span class="n">idx_fulltext_description</span><span class="p">)</span> 
+<span class="k">WHERE</span> <span class="k">MATCH</span><span class="p">(</span><span class="n">description</span><span class="p">)</span> <span class="n">AGAINST</span><span class="p">(</span><span class="s1">'Blockchain'</span><span class="p">);</span>
+
+ <span class="o">-&gt;</span> <span class="n">Filter</span><span class="p">:</span> <span class="p">(</span><span class="k">match</span> <span class="n">fulltext_test</span><span class="p">.</span><span class="nv">`description`</span> <span class="n">against</span> <span class="p">(</span><span class="s1">'Blockchain'</span><span class="p">))</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">11596</span> <span class="k">rows</span><span class="o">=</span><span class="mi">12572</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">046</span><span class="p">..</span><span class="mi">48</span><span class="p">.</span><span class="mi">7</span> <span class="k">rows</span><span class="o">=</span><span class="mi">22668</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="k">Table</span> <span class="n">scan</span> <span class="k">on</span> <span class="n">fulltext_test</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">11596</span> <span class="k">rows</span><span class="o">=</span><span class="mi">113155</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">0288</span><span class="p">..</span><span class="mi">36</span><span class="p">.</span><span class="mi">6</span> <span class="k">rows</span><span class="o">=</span><span class="mi">114244</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h5 id="결과-4">결과</h5>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>Fulltext 인덱스</th>
+      <th>인덱스 X</th>
+      <th>차이점</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>검색 조회 (MATCH)</strong></td>
+      <td>35.9ms</td>
+      <td>48.7ms</td>
+      <td>1.35배 차이</td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li>성능 향상이 있긴 하지만, 위에 B-Tree 나 Hash 만큼 드라마틱 하지는 않은 것 같다.</li>
+  <li>문장이 더 다양하고, 긴 문장이면 효과가 더 나올라나?</li>
+</ul>
+
+<h2 id="4-b-tree-vs-hash-index">4. B-Tree VS Hash Index</h2>
+
+<ul>
+  <li>생각보다 B-Tree 도 검색효율이 나오는 것 같아서 둘을 비교해보자</li>
+</ul>
+
+<h5 id="범위-조회-between-2">범위 조회 (BETWEEN)</h5>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span> 
+<span class="k">SELECT</span> <span class="o">*</span> 
+<span class="k">FROM</span> <span class="n">btree_hash_test</span> 
+<span class="k">WHERE</span> <span class="n">btree_column</span> <span class="k">BETWEEN</span> <span class="mi">100000</span> <span class="k">AND</span> <span class="mi">200000</span><span class="p">;</span>
+
+<span class="o">-&gt;</span> <span class="k">Index</span> <span class="k">range</span> <span class="n">scan</span> <span class="k">on</span> <span class="n">btree_hash_test</span> <span class="k">using</span> <span class="n">idx_btree</span> <span class="n">over</span> <span class="p">(</span><span class="mi">100000</span> <span class="o">&lt;=</span> <span class="n">btree_column</span> <span class="o">&lt;=</span> <span class="mi">200000</span><span class="p">),</span> <span class="k">with</span> <span class="k">index</span> <span class="n">condition</span><span class="p">:</span> <span class="p">(</span><span class="n">btree_hash_test</span><span class="p">.</span><span class="n">btree_column</span> <span class="k">between</span> <span class="mi">100000</span> <span class="k">and</span> <span class="mi">200000</span><span class="p">)</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">4535</span> <span class="k">rows</span><span class="o">=</span><span class="mi">10078</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">1</span><span class="p">.</span><span class="mi">62</span><span class="p">..</span><span class="mi">11</span><span class="p">.</span><span class="mi">9</span> <span class="k">rows</span><span class="o">=</span><span class="mi">10078</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span> 
+<span class="k">SELECT</span> <span class="o">*</span> 
+<span class="k">FROM</span> <span class="n">btree_hash_test</span> 
+<span class="k">WHERE</span> <span class="n">hash_column</span> <span class="k">BETWEEN</span> <span class="mi">100000</span> <span class="k">AND</span> <span class="mi">200000</span><span class="p">;</span>
+
+<span class="o">-&gt;</span> <span class="k">Index</span> <span class="k">range</span> <span class="n">scan</span> <span class="k">on</span> <span class="n">btree_hash_test</span> <span class="k">using</span> <span class="n">idx_hash</span> <span class="n">over</span> <span class="p">(</span><span class="mi">100000</span> <span class="o">&lt;=</span> <span class="n">hash_column</span> <span class="o">&lt;=</span> <span class="mi">200000</span><span class="p">),</span> <span class="k">with</span> <span class="k">index</span> <span class="n">condition</span><span class="p">:</span> <span class="p">(</span><span class="n">btree_hash_test</span><span class="p">.</span><span class="n">hash_column</span> <span class="k">between</span> <span class="mi">100000</span> <span class="k">and</span> <span class="mi">200000</span><span class="p">)</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">4475</span> <span class="k">rows</span><span class="o">=</span><span class="mi">9943</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">3</span><span class="p">.</span><span class="mi">58</span><span class="p">..</span><span class="mi">21</span><span class="p">.</span><span class="mi">8</span> <span class="k">rows</span><span class="o">=</span><span class="mi">9943</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h5 id="검색-조회--3">검색 조회 (=)</h5>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span> 
+<span class="k">SELECT</span> <span class="o">*</span> 
+<span class="k">FROM</span> <span class="n">btree_hash_test</span> 
+<span class="k">WHERE</span> <span class="n">btree_column</span><span class="o">=</span><span class="mi">146708</span><span class="p">;</span>
+
+<span class="o">-&gt;</span> <span class="k">Index</span> <span class="n">lookup</span> <span class="k">on</span> <span class="n">btree_hash_test</span> <span class="k">using</span> <span class="n">idx_btree</span> <span class="p">(</span><span class="n">btree_column</span><span class="o">=</span><span class="mi">146708</span><span class="p">)</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">35</span> <span class="k">rows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">0424</span><span class="p">..</span><span class="mi">0</span><span class="p">.</span><span class="mi">0454</span> <span class="k">rows</span><span class="o">=</span><span class="mi">1</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span> 
+<span class="k">SELECT</span> <span class="o">*</span> 
+<span class="k">FROM</span> <span class="n">btree_hash_test</span> 
+<span class="k">WHERE</span> <span class="n">hash_column</span><span class="o">=</span><span class="mi">921585</span><span class="p">;</span>
+
+<span class="o">-&gt;</span> <span class="k">Index</span> <span class="n">lookup</span> <span class="k">on</span> <span class="n">btree_hash_test</span> <span class="k">using</span> <span class="n">idx_hash</span> <span class="p">(</span><span class="n">hash_column</span><span class="o">=</span><span class="mi">921585</span><span class="p">)</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">35</span> <span class="k">rows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="nb">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">0199</span><span class="p">..</span><span class="mi">0</span><span class="p">.</span><span class="mi">0213</span> <span class="k">rows</span><span class="o">=</span><span class="mi">1</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h5 id="결과-5">결과</h5>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>B-Tree</th>
+      <th>Hash 인덱스</th>
+      <th>차이점</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>범위 조회 (BETWEEN)</strong></td>
+      <td>11.9ms</td>
+      <td>21.8ms</td>
+      <td>2배 차이</td>
+    </tr>
+    <tr>
+      <td><strong>검색 조회 (=)</strong></td>
+      <td>0.0454ms</td>
+      <td>0.0213ms</td>
+      <td>2배 차이</td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li>범위랑 검색 모두 2배 차이씩 나는 것 같다.</li>
+  <li>대충 범위 조회를 많이쓰면 B-Tree를 검색 조회를 많이 쓰면 Hash Index 를 사용하면 될 것 같다.</li>
+</ul>
+
+<h2 id="결과-6">결과</h2>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>그냥 대충 B-Tree 써도 손해는 없어보인다.
+다만, 속도차이를 보니 속도를 타이트하게 잡아야한다면, 다른 Index 를 고려해볼 필요는 있을 것 같다.
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="나중에-더-해볼-것">나중에 더 해볼 것</h2>
+
+<ol>
+  <li>INSERT, UPDATE 시 속도 저하가 어느 정도인지 테스트 해보고싶다.</li>
+  <li>생각보다 Fulltext Index 테스트가 안좋았던 것 같다. 테스트 방식을 바꿔야 할 것 같다 =&gt; 크롤링으로 많은 데이터를 가져와서 Fulltext Index 걸어봐야 확실히 성능이 좋아지는지 알 수 있을 것 같다.</li>
+</ol>
+
+            </div>
+
+            <!-- Rating -->
+            
+
+            <!-- Post Categories -->
+            <div class="after-post-cats">
+                <ul class="tags mb-4">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/study/categories#DB">DB</a>
+                    </li>
+                    
+                    <li>
+                        <a class="smoothscroll" href="/study/categories#TEST">TEST</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Categories -->
+
+            <!-- Post Tags -->
+            <div class="after-post-tags">
+                <ul class="tags">
+                    
+                    
+                    <li>
+                        <a class="smoothscroll" href="/study/tags#DB">#DB</a>
+                    </li>
+                    
+                    <li>
+                        <a class="smoothscroll" href="/study/tags#Index">#Index</a>
+                    </li>
+                    
+                    <li>
+                        <a class="smoothscroll" href="/study/tags#Mysql">#Mysql</a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- End Tags -->
+
+            <!-- Prev/Next -->
+            <div class="row PageNavigation d-flex justify-content-between font-weight-bold">
+            
+            <a class="prev d-block col-md-6" href="/study//3-mono-throw/"> &laquo; Mono 내부에서 throw 를 던질 경우 onErrorResume이 동작하지 않는다?</a>
+            
+            
+            <div class="clearfix"></div>
+            </div>
+            <!-- End Categories -->
+
+        </div>
+        <!-- End Post -->
+
+    </div>
+</div>
+<!-- End Article
+================================================== -->
+
+<!-- Begin Comments
+================================================== -->
+
+    <div class="container">
+        <div id="comments" class="row justify-content-center mb-5">
+            <div class="col-md-8">
+                <section class="disqus">
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        var disqus_shortname = 'jyukki97'; 
+        var disqus_developer = 0;
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = window.location.protocol + '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+            </div>
+        </div>
+    </div>
+
+<!--End Comments
+================================================== -->
+
+<!-- Review with LD-JSON, adapt it for your needs if you like, but make sure you test the generated HTML source code first: 
+https://search.google.com/structured-data/testing-tool/u/0/
+================================================== -->
+
+</div>
+
+
+    
+</div>
+
+<!-- Categories Jumbotron
+================================================== -->
+<div class="jumbotron fortags">
+	<div class="d-md-flex h-100">
+		<div class="col-md-4 transpdark align-self-center text-center h-100">
+            <div class="d-md-flex align-items-center justify-content-center h-100">
+                <h2 class="d-md-block align-self-center py-1 font-weight-light"></h2>
+            </div>
+		</div>
+		<div class="col-md-8 p-5 align-self-center text-center">
+            
+            
+                
+                    <a class="mt-1 mb-1" href="/study/categories#first">first (1)</a>
+                
+                    <a class="mt-1 mb-1" href="/study/categories#TEST">TEST (5)</a>
+                
+                    <a class="mt-1 mb-1" href="/study/categories#API">API (2)</a>
+                
+                    <a class="mt-1 mb-1" href="/study/categories#Webflux">Webflux (1)</a>
+                
+                    <a class="mt-1 mb-1" href="/study/categories#DB">DB (1)</a>
+                
+            
+            
+		</div>
+	</div>
+</div>
+
+<!-- Begin Footer
+================================================== -->
+<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-sm-6 text-center text-lg-left">
+                Copyright © 2025 한 단계 더 위로 
+            </div>
+            <div class="col-md-6 col-sm-6 text-center text-lg-right"> 
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- End Footer
+================================================== -->
+
+</div> <!-- /.site-content -->
+
+<!-- Scripts
+================================================== -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+
+<script src="/study/assets/js/mediumish.js"></script>
+
+
+
+<script src="/study/assets/js/ie10-viewport-bug-workaround.js"></script> 
+
+
+<script id="dsq-count-scr" src="//jyukki97.disqus.com/count.js"></script>
+
+
+</body>
+</html>
